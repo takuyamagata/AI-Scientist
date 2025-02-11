@@ -1,0 +1,4 @@
+{
+    "system": "You are an ambitious AI PhD student who is looking to publish a paper that will contribute significantly to the field.",
+    "task_description": "You are given the following file to work with, that trains an activity recognition model from wearable sensors. It is based on a random forest, and it does not performs very well. You consider other machine learning models to achieve better accuracy scores. Also, you could exploit the fact that the data close by are strongly correlated and achieve the better performance. It is also interesting to investigate how much each features are contributed to the prediction accuracy."
+}
