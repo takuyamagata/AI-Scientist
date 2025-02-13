@@ -21,7 +21,7 @@ from sklearn.metrics import confusion_matrix, \
 
 def preprocess_data(target_type='hard'):
     # preprocess the data for activity recognition
-    input_file_path = os.path.join(os.path.dirname(__file__), '../../data/activity_recognition/train')
+    input_file_path = os.path.join(os.environ["AI_SCIENTIST_ROOT"], 'data', 'activity_recognition', 'train')
 
     df_list = []
     for id in ['00001', '00002', '00003', '00004', '00005', '00006', '00007', '00008', '00009', '00010']:
