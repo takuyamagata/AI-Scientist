@@ -1,29 +1,11 @@
 [
   {
-      "Name": "deep_nerual_network",
-      "Title": "Deep Neural Network-based activity recognition for a home environment.",
-      "Experiment": "In this experiment, we compare the performance of different deep neural network architectures for the activity prediction task. We use the final accuracy score and confusion matrix as the evaluation metric.",
-      "Interestingness": 4,
-      "Feasibility": 10,
-      "Novelty": 3,
-      "novel": true
-  },
-  {
-      "Name": "exploiting_time_correlation",
-      "Title": "Exploiting time correlation characteristics in the activity recognition prediction task.",
-      "Experiment": "Implement a machine learning model, which takes a sequence of input feature data and predicts the action. Retrain the model and evaluate performance using the accuracy score and confusion matrix.",
+      "Name": "mode_vs_data_centric_approach",
+      "Title": "Comparative Analysis of Data-Centric and Model-Centric Approaches for Activity Recognition in Home Environments.",
+      "Experiment": "In this experiment, we investigate the effectiveness of both model- and data-centric approaches. We also examine how these strategies influence model predictions. The evaluation metrics we employ include the final accuracy score and the confusion matrix.",
       "Interestingness": 6,
-      "Feasibility": 9,
-      "Novelty": 5,
+      "Feasibility": 10,
+      "Novelty": 4,
       "novel": true
-  },
-  {
-      "Name": "hidden_markov_model",
-      "Title": "Employing a hidden Markov model to refine the activity recognition predictions.",
-      "Experiment": "Train a machine learning model (deep neural network or any other models) for the activity recognition, then employ a hidden Markov model to refine the trained model predictions. The hidden Markov model may require an adjacent matrix, which can be obtained from the training data. Evaluate performance using accuracy scores and a confusion matrix.",
-      "Interestingness": 7,
-      "Feasibility": 9,
-      "Novelty": 6,
-      "novel": false
   }
 ]
