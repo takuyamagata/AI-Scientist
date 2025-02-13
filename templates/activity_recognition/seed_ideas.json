@@ -7,7 +7,7 @@
         "Feasibility": 10,
         "Novelty": 4,
         "novel": true
-    }
+    },
     {
         "Name": "mode_vs_data_centric_approach",
         "Title": "Comparative Analysis of Data-Centric and Model-Centric Approaches for Activity Recognition in Home Environments.",
