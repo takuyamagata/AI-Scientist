@@ -7,14 +7,5 @@
         "Feasibility": 10,
         "Novelty": 4,
         "novel": true
-    },
-    {
-        "Name": "mode_vs_data_centric_approach",
-        "Title": "Comparative Analysis of Data-Centric and Model-Centric Approaches for Activity Recognition in Home Environments.",
-        "Experiment": "In this experiment, we investigate the effectiveness of both model- and data-centric approaches. We also examine how these strategies influence model predictions. The evaluation metrics we employ include the final accuracy score and the confusion matrix.",
-        "Interestingness": 6,
-        "Feasibility": 10,
-        "Novelty": 4,
-        "novel": true
     }
 ]
