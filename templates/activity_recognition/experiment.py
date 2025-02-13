@@ -19,12 +19,65 @@ from sklearn.metrics import confusion_matrix, \
                             precision_score
 
 
+def preprocess_data(target_type='hard'):
+    # preprocess the data for activity recognition
+    input_file_path = os.path.join(os.path.dirname(__file__), '../../data/activity_recognition/train')
+
+    df_list = []
+    for id in ['00001', '00002', '00003', '00004', '00005', '00006', '00007', '00008', '00009', '00010']:
+        # format the data (accelerometer and RSSI) for activity recognition
+        df = pd.read_csv(os.path.join(input_file_path, id, 'acceleration.csv'))
+        df.replace(np.nan, -120, inplace=True)
+        df['t'] = pd.to_datetime(df['t'], unit='s')
+        df.set_index('t', inplace=True)
+        df = df.resample('1s').mean()
+        
+        # format the targe
+        df_tgt = pd.read_csv(os.path.join(input_file_path, id, 'targets.csv'))
+        df_tgt['t'] = pd.to_datetime(df_tgt['start'], unit='s')
+        df_tgt.set_index('t', inplace=True)
+        df_tgt.drop(['start', 'end'], axis=1, inplace=True)
+        
+        # add maximum target index column
+        if target_type=='hard':
+            for n, row in df_tgt.iterrows():
+                df_tgt.loc[n, 'target'] = np.nan if np.any(np.isnan(row)) else np.argmax(row)
+
+        # concatenate the data (accelerometer and RSSI) and the target
+        df = pd.concat([df, df_tgt], axis=1, join='inner')
+        df.dropna(inplace=True)
+
+        # append to the df_list
+        df_list.append(df)
+
+    # concatenate the all data
+    df = pd.concat(df_list, axis=0, ignore_index=True)
+
+    # split feature dtata and labels
+    data_id = ['x','y','z','Kitchen_AP', 'Lounge_AP', 'Upstairs_AP', 'Study_AP']
+    target_id = ['a_ascend', 'a_descend', 'a_jump', 'a_loadwalk' ,'a_walk',
+                    'p_bent', 'p_kneel', 'p_lie', 'p_sit', 'p_squat', 'p_stand', 
+                    't_bend', 't_kneel_stand', 't_lie_sit', 't_sit_lie', 't_sit_stand', 
+                    't_stand_kneel', 't_stand_sit', 't_straighten','t_turn']
+    if target_type=='soft':
+        _id = target_id
+    elif target_type=='hard':
+        _id = ['target']
+    else:
+        raise ValueError('label_type should be either "hard" or "soft"')
+
+    data = df[data_id].values
+    target = df[_id].values
+    
+    return data, data_id, target, target_id
+
+
 def get_classifier_grid():
     # Create cross-validation partitions from training
     # This should select the best set of parameters
     cv = StratifiedKFold(n_splits=5, shuffle=False)
     clf = RandomForestClassifier()
-    param_grid = {'n_estimators' : [200, 250, 300, 500],
+    param_grid = {'n_estimators' : [200, 300, 500],
                   'min_samples_leaf': [5, 10, 20]}
     clf_grid = GridSearchCV(clf, 
                             param_grid=param_grid, 
@@ -62,17 +115,10 @@ if __name__ == "__main__":
     if not os.path.exists(config.out_dir):
         os.makedirs(config.out_dir)
 
-    # Load the dataset
+    # prepare the dataset
     dataset_name = 'SPHERE_Challenge' # at moment, only SPHERE_Challenge is supported
-    if not os.path.exists(config.dataset_csv_file):
-        raise FileNotFoundError(
-            "Dataset file not found. Please run prepare.py first."
-        )
-    df = pd.read_csv(config.dataset_csv_file)
-    features_id = ['x','y','z','Kitchen_AP', 'Lounge_AP', 'Upstairs_AP', 'Study_AP']
-    data = df[features_id].values
-    labels = df['target'].values
-    (X_train, y_train), (X_test, y_test) = split_train_test(data, labels)
+    data, features_id, target, target_id = preprocess_data(target_type='hard')
+    (X_train, y_train), (X_test, y_test) = split_train_test(data, target)
 
     # get the classifier grid
     clf_grid = get_classifier_grid()
@@ -88,30 +134,29 @@ if __name__ == "__main__":
     end_inf_time = time.time()
 
     # post-process the prediction results
-    labels = [id for id in list(df) if 'a_' in id or 'p_' in id]
-    y_pred_str = [labels[int(i)] for i in y_pred]
-    y_test_str = [labels[int(i)] for i in y_test]
+    y_pred_str = [target_id[int(i)] for i in y_pred]
+    y_test_str = [target_id[int(i)] for i in y_test]
 
     # measure the performance
     accuracy = accuracy_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred, average='macro')
-    recall = recall_score(y_test, y_pred, average='macro')
-    precision = precision_score(y_test, y_pred, average='macro')
-    cm = confusion_matrix(y_test_str, y_pred_str, labels=labels)    
+    # f1 = f1_score(y_test, y_pred, average='macro')
+    # recall = recall_score(y_test, y_pred, average='macro')
+    # precision = precision_score(y_test, y_pred, average='macro')
+    cm = confusion_matrix(y_test_str, y_pred_str, labels=target_id)    
     
     # plot confusion matrix
-    ConfusionMatrixDisplay.from_predictions(
-        y_test_str, y_pred_str, labels=labels
-    )
+    # ConfusionMatrixDisplay.from_predictions(
+    #     y_test_str, y_pred_str, labels=target_id
+    # )
     
     all_results = {}
     all_results[dataset_name] = {
         'accuracy': accuracy,
-        'f1': f1,
-        'recall': recall,
-        'precision': precision,
+        # 'f1': f1,
+        # 'recall': recall,
+        # 'precision': precision,
         'confusion_matrix': cm.tolist(),
-        'labels': labels,
+        'labels': target_id,
         'best_params': clf_grid.best_params_,
     }
 
@@ -121,7 +166,6 @@ if __name__ == "__main__":
                 'training_time': end_time - start_time,
                 'inferece_time': end_inf_time - start_inf_time,
                 'accuracy': accuracy,
-                'f1': f1,
                 'confusion_matrix': cm.tolist(),
             }
         }
