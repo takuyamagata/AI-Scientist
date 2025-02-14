@@ -118,6 +118,7 @@ def generate_ideas(
         skip_generation=False,
         max_num_generations=20,
         num_reflections=5,
+        skip_clarification=False,
 ):
     if skip_generation:
         # Load existing ideas from file
@@ -147,37 +148,40 @@ def generate_ideas(
 
     idea_system_prompt = prompt["system"]
 
-    # Idea clarification
     prev_ideas_string = "\n\n".join(idea_str_archive)
     msg_history = []
 
-    text, msg_history = get_response_from_llm(
-        idea_clarification_prompt.format(
-            task_description=prompt["task_description"],
-            code=code,
-            prev_ideas_string=prev_ideas_string,
-        ),
-        client=client,
-        model=model,
-        system_message=idea_system_prompt,
-        msg_history=msg_history,
-    )
-    ## PARSE OUTPUT
-    json_output = extract_json_between_markers(text)
-    assert json_output is not None, "Failed to extract JSON from LLM output"
-    print(json_output)
-    if "I have no questions" in json_output["Q"]:
-        print("No questions asked.")
+    # Idea clarification
+    if skip_clarification:
+        print("\nSkipping idea clarification stage.")
     else:
-        print(f"\n---------------------------------------------------------------")
-        print(f" I have {len(json_output["Q"])} questions to clarify the task.")
-        print(f"\n---------------------------------------------------------------")
-        prompt["task_description"] += "\n\nTask clarification question and answers:"
-        for n, question in enumerate(json_output["Q"]):
-            print(f"\nQuestion ({n+1}/{len(json_output["Q"])}): {question}")
-            a = str(input("Answer: "))
-            if a != "":
-                prompt["task_description"] += f"\n\nQuestion: {question}\nAnswer: {a}"
+        text, msg_history = get_response_from_llm(
+            idea_clarification_prompt.format(
+                task_description=prompt["task_description"],
+                code=code,
+                prev_ideas_string=prev_ideas_string,
+            ),
+            client=client,
+            model=model,
+            system_message=idea_system_prompt,
+            msg_history=msg_history,
+        )
+        ## PARSE OUTPUT
+        json_output = extract_json_between_markers(text)
+        assert json_output is not None, "Failed to extract JSON from LLM output"
+        print(json_output)
+        if "I have no questions" in json_output["Q"]:
+            print("No questions asked.")
+        else:
+            print(f"\n---------------------------------------------------------------")
+            print(f" I have {len(json_output["Q"])} questions to clarify the task.")
+            print(f"\n---------------------------------------------------------------")
+            prompt["task_description"] += "\n\nTask clarification question and answers:"
+            for n, question in enumerate(json_output["Q"]):
+                print(f"\nQuestion ({n+1}/{len(json_output["Q"])}): {question}")
+                a = str(input("Answer: "))
+                if a != "":
+                    prompt["task_description"] += f"\n\nQuestion: {question}\nAnswer: {a}"
 
     for _ in range(max_num_generations):
         print()
