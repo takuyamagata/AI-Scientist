@@ -26,6 +26,7 @@ Come up with a maximum of five clarification questions that can help narrow down
 Note that you will not have access to any additional resources or datasets.
 Some examples of possible questions (but not limited to) could relate to the dataset, models, or information about the target applications.
 Make sure any idea is not overfit the specific training dataset or model, and has wider significance.
+You do not need to ask five questions, only ask questions that are necessary to clarify the task.
 
 Respond in the following format:
 
