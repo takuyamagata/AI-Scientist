@@ -11,6 +11,43 @@ from ai_scientist.llm import get_response_from_llm, extract_json_between_markers
 
 S2_API_KEY = os.getenv("S2_API_KEY")
 
+
+idea_clarification_prompt = """{task_description}
+<experiment.py>
+{code}
+</experiment.py>
+
+Here are the ideas that you have already generated:
+
+'''
+{prev_ideas_string}
+'''
+
+Come up with the some clarification questions that narrow down the research area and help come up with the next impactful and creative idea for research experiments and directions you can feasibly investigate with the code provided.
+Note that you will not have access to any additional resources or datasets.
+Some examples of the possible questions are (not limited to) regading dataset, models and any information about the target applications.
+Make sure any idea is not overfit the specific training dataset or model, and has wider significance.
+
+Respond in the following format:
+
+THOUGHT:
+<THOUGHT>
+
+NEW IDEA JSON:
+```json
+<JSON>
+```
+
+In <THOUGHT>, first briefly discuss roughly which area of the idea need to clarify. Detail your questions. Justify how the questions help come up with the next impactful and creative research idea.
+
+In <JSON>, provide the new idea in JSON format with the following fields:
+- "Q": A list of clarification questions.
+
+Be cautious and realistic on your ratings.
+This JSON will be automatically parsed, so ensure the format is precise.
+ONLY INCLUDE "I have no questions" IF YOU DO NOT HAVE ANY QUESTIONS TO ASK.
+"""
+
 idea_first_prompt = """{task_description}
 <experiment.py>
 {code}
@@ -108,6 +145,32 @@ def generate_ideas(
         prompt = json.load(f)
 
     idea_system_prompt = prompt["system"]
+
+    # Idea clarification
+    text, msg_history = get_response_from_llm(
+        idea_clarification_prompt.format(
+            task_description=prompt["task_description"],
+            code=code,
+            prev_ideas_string=prev_ideas_string,
+        ),
+        client=client,
+        model=model,
+        system_message=idea_system_prompt,
+        msg_history=msg_history,
+    )
+    ## PARSE OUTPUT
+    json_output = extract_json_between_markers(text)
+    assert json_output is not None, "Failed to extract JSON from LLM output"
+    print(json_output)
+    if "I have no questions" in json_output["Q"]:
+        print("No questions asked.")
+    else:
+        prompt["task_description"] += "Task clarification question and answers:"
+        for question in json_output["Q"]:
+            print(f"Question: {question}")
+            a = str(input("Answer: "))
+            if a != "":
+                prompt["task_description"] += f"\n\nQuestion: {question}\nAnswer: {a}"
 
     for _ in range(max_num_generations):
         print()
