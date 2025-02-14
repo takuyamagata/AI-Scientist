@@ -54,11 +54,11 @@ def preprocess_data(target_type='hard'):
     df = pd.concat(df_list, axis=0, ignore_index=True)
 
     # split feature dtata and labels
-    data_id = ['x','y','z','Kitchen_AP', 'Lounge_AP', 'Upstairs_AP', 'Study_AP'] # if new features are added or removed, they should be added or removed here
+    data_id = ['x','y','z','Kitchen_AP', 'Lounge_AP', 'Upstairs_AP', 'Study_AP'] # if new features are added or removed, their column names should be added or removed here
     target_id = ['a_ascend', 'a_descend', 'a_jump', 'a_loadwalk' ,'a_walk',
                     'p_bent', 'p_kneel', 'p_lie', 'p_sit', 'p_squat', 'p_stand', 
                     't_bend', 't_kneel_stand', 't_lie_sit', 't_sit_lie', 't_sit_stand', 
-                    't_stand_kneel', 't_stand_sit', 't_straighten','t_turn'] # if new labels are added or removed, they should be added or removed here
+                    't_stand_kneel', 't_stand_sit', 't_straighten','t_turn'] # if new labels are added or removed, their column names should be added or removed here
     if target_type=='soft':
         _id = target_id
     elif target_type=='hard':
