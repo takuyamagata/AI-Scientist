@@ -22,10 +22,9 @@ Here are the ideas that you have already generated:
 '''
 {prev_ideas_string}
 '''
-
-Come up with the some clarification questions that narrow down the research area and help come up with the next impactful and creative idea for research experiments and directions you can feasibly investigate with the code provided.
+Come up with a maximum of five clarification questions that can help narrow down the research area and generate impactful, creative ideas for research experiments and directions that can be feasibly investigated using the provided code. 
 Note that you will not have access to any additional resources or datasets.
-Some examples of the possible questions are (not limited to) regading dataset, models and any information about the target applications.
+Some examples of possible questions (but not limited to) could relate to the dataset, models, or information about the target applications.
 Make sure any idea is not overfit the specific training dataset or model, and has wider significance.
 
 Respond in the following format:
@@ -45,6 +44,7 @@ In <JSON>, provide the new idea in JSON format with the following fields:
 
 Be cautious and realistic on your ratings.
 This JSON will be automatically parsed, so ensure the format is precise.
+The number of questions is limited to five and should be arranged in order of importance.
 ONLY INCLUDE "I have no questions" IF YOU DO NOT HAVE ANY QUESTIONS TO ASK.
 """
 
@@ -147,6 +147,9 @@ def generate_ideas(
     idea_system_prompt = prompt["system"]
 
     # Idea clarification
+    prev_ideas_string = "\n\n".join(idea_str_archive)
+    msg_history = []
+
     text, msg_history = get_response_from_llm(
         idea_clarification_prompt.format(
             task_description=prompt["task_description"],
@@ -165,9 +168,12 @@ def generate_ideas(
     if "I have no questions" in json_output["Q"]:
         print("No questions asked.")
     else:
-        prompt["task_description"] += "Task clarification question and answers:"
-        for question in json_output["Q"]:
-            print(f"Question: {question}")
+        print(f"\n---------------------------------------------------------------")
+        print(f" I have {len(json_output["Q"])} questions to clarify the task.")
+        print(f"\n---------------------------------------------------------------")
+        prompt["task_description"] += "\n\nTask clarification question and answers:"
+        for n, question in enumerate(json_output["Q"]):
+            print(f"\nQuestion ({n+1}/{len(json_output["Q"])}): {question}")
             a = str(input("Answer: "))
             if a != "":
                 prompt["task_description"] += f"\n\nQuestion: {question}\nAnswer: {a}"
@@ -178,7 +184,6 @@ def generate_ideas(
         try:
             prev_ideas_string = "\n\n".join(idea_str_archive)
 
-            msg_history = []
             print(f"Iteration 1/{num_reflections}")
             text, msg_history = get_response_from_llm(
                 idea_first_prompt.format(
